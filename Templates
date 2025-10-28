@@ -1,0 +1,43 @@
+<details><summary>Tap to copy code</summary>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Nearby Trails 3D</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+      html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    </style>
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <script>
+      const viewer = new Cesium.Viewer('cesiumContainer', {
+        terrain: Cesium.Terrain.fromWorldTerrain()
+      });
+
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lon, lat, 1500) });
+
+        const res = await fetch(`/trails?lat=${lat}&lon=${lon}`);
+        const trails = await res.json();
+
+        trails.forEach(trail => {
+          const positions = trail.coords.map(c => Cesium.Cartesian3.fromDegrees(c[1], c[0]));
+          viewer.entities.add({
+            polyline: {
+              positions,
+              width: 3,
+              material: Cesium.Color.ORANGE
+            }
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
+</details>
+
